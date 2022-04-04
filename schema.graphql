@@ -1,23 +1,4 @@
-type Approval @entity {
-  id: ID!
-  owner: Bytes! # address
-  spender: Bytes! # address
-  value: BigInt! # uint256
-}
-
-type MinterAdded @entity {
-  id: ID!
-  account: Bytes! # address
-}
-
-type MinterRemoved @entity {
-  id: ID!
-  account: Bytes! # address
-}
-
-type Transfer @entity {
-  id: ID!
-  from: Bytes! # address
-  to: Bytes! # address
-  value: BigInt! # uint256
+type TotalAmount @entity {
+  id: ID! #day
+  amount: BigInt! #staking amount
 }

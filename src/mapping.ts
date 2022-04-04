@@ -1,48 +1,29 @@
 import {
-  Approval as ApprovalEvent,
-  MinterAdded as MinterAddedEvent,
-  MinterRemoved as MinterRemovedEvent,
   Transfer as TransferEvent
 } from "../generated/DevToken/DevToken"
 import {
-  Approval,
-  MinterAdded,
-  MinterRemoved,
-  Transfer
+  EternalStorage
+} from "../generated/DevToken/EternalStorage"
+import {
+  TotalAmount
 } from "../generated/schema"
-
-export function handleApproval(event: ApprovalEvent): void {
-  let entity = new Approval(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.owner = event.params.owner
-  entity.spender = event.params.spender
-  entity.value = event.params.value
-  entity.save()
-}
-
-export function handleMinterAdded(event: MinterAddedEvent): void {
-  let entity = new MinterAdded(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.account = event.params.account
-  entity.save()
-}
-
-export function handleMinterRemoved(event: MinterRemovedEvent): void {
-  let entity = new MinterRemoved(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.account = event.params.account
-  entity.save()
-}
+import { Bytes, Address } from '@graphprotocol/graph-ts'
 
 export function handleTransfer(event: TransferEvent): void {
-  let entity = new Transfer(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.from = event.params.from
-  entity.to = event.params.to
-  entity.value = event.params.value
-  entity.save()
+  let day = event.block.timestamp.toI32() / 86400
+  let totalAmount = TotalAmount.load(day.toString())
+  if (totalAmount === null) {
+    totalAmount = new TotalAmount(
+      day.toString()
+    )
+    let eternalStorage = EternalStorage.bind(Address.fromString('0x4a154e51b69A798d854E100fDf79e6f0Be0e330D'))
+    totalAmount.save()
+    let getAllValueResult = eternalStorage.try_getUint(
+      Bytes.fromHexString('0xe7dcf1d83b6e7da9390ea33f3813dc78de09a758d09c9be500b16f152c88c364')
+    )
+    if (!getAllValueResult.reverted) {
+      totalAmount.amount = getAllValueResult.value
+      totalAmount.save()
+    }
+  }
 }
